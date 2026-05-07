@@ -132,7 +132,7 @@ export default function App() {
     setIsVerifying(true);
     setPaymentError(null);
 
-    const keyId = (window as any).RAZORPAY_KEY_ID;
+    const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID || (window as any).RAZORPAY_KEY_ID;
     
     // Check if SDK is loaded
     if (typeof (window as any).Razorpay === 'undefined') {
