@@ -5,7 +5,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ override: true });
 
 async function startServer() {
   const app = express();
@@ -27,10 +27,15 @@ async function startServer() {
 
   app.post("/api/create-order", async (req, res) => {
     try {
-      if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      const keyId = process.env.RAZORPAY_KEY_ID;
+      const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+      if (!keyId || !keySecret) {
         console.error("Razorpay Keys are missing in environment variables.");
         return res.status(500).json({ error: "Razorpay keys not configured on server." });
       }
+
+      console.log(`Initialising order with Key ID starting: ${keyId.substring(0, 8)}...`);
 
       const options = {
         amount: 500, // INR 5.00 in paise
@@ -39,11 +44,15 @@ async function startServer() {
       };
 
       const order = await razorpay.orders.create(options);
-      console.log("Order created:", order.id);
+      console.log("Order created successfully:", order.id);
       res.json(order);
-    } catch (error) {
-      console.error("Razorpay Order Error:", error);
-      res.status(500).json({ error: "Failed to create order" });
+    } catch (error: any) {
+      console.error("Razorpay Order Error Details:", JSON.stringify(error, null, 2));
+      res.status(500).json({ 
+        error: "Failed to create order", 
+        message: error.description || error.message || "Unknown error",
+        code: error.code
+      });
     }
   });
 
